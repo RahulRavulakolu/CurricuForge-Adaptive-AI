@@ -2,10 +2,15 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(cors());
 app.use(express.json());
 
@@ -68,5 +73,13 @@ app.post('/api/llm', async (req, res) => {
 	}
 });
 
+// Serve static files from the Vite build directory
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Handle SPA routing - send all other requests to index.html
+app.get('*', (req, res) => {
+	res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 const port = process.env.PORT || 3001;
-app.listen(port, () => console.log(`LLM proxy listening on http://localhost:${port}`));
+app.listen(port, () => console.log(`Server listening on port ${port}`));
