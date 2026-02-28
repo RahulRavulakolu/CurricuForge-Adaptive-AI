@@ -15,12 +15,14 @@ import {
 import CourseQuestionPaper from './CourseQuestionPaper';
 import CourseCapstoneIdeas from './CourseCapstoneIdeas';
 
+import { exportCourseToPDF } from '@/utils/pdfExport';
+
 export default function CourseDetailView({ course, onBack }) {
   const [copiedSection, setCopiedSection] = useState(null);
 
   const copyToClipboard = (content, section) => {
     let textContent = '';
-    
+
     if (section === 'units') {
       textContent = `📚 UNIT-WISE SYLLABUS (15 weeks)\n\n`;
       course.units?.forEach(unit => {
@@ -54,7 +56,7 @@ export default function CourseDetailView({ course, onBack }) {
     } else {
       textContent = typeof content === 'object' ? JSON.stringify(content, null, 2) : content;
     }
-    
+
     navigator.clipboard.writeText(textContent);
     setCopiedSection(section);
     setTimeout(() => setCopiedSection(null), 2000);
@@ -85,7 +87,7 @@ export default function CourseDetailView({ course, onBack }) {
     const colors = {
       'Remember': 'bg-gray-500/20 text-gray-300 border-gray-500/30',
       'Understand': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-      'Apply': 'bg-green-500/20 text-green-300 border-green-500/30',
+      'Apply': 'bg-green-500/20 text-green-300 border-gray-500/30',
       'Analyze': 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
       'Evaluate': 'bg-orange-500/20 text-orange-300 border-orange-500/30',
       'Create': 'bg-purple-500/20 text-purple-300 border-purple-500/30'
@@ -94,11 +96,43 @@ export default function CourseDetailView({ course, onBack }) {
   };
 
   const exportAsPDF = () => {
-    alert('PDF export functionality - would generate a formatted PDF document');
+    exportCourseToPDF(course);
   };
 
   const exportAsDOCX = () => {
-    alert('DOCX export functionality - would generate a Word document');
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Course Syllabus</title></head><body>";
+    const footer = "</body></html>";
+
+    let body = `<h1>${course.title}</h1>`;
+    body += `<p>Code: ${course.code} | Credits: ${course.credits} | Semester: ${course.semester}</p>`;
+    body += `<p>Program: ${course.program}</p>`;
+
+    body += "<h2>UNIT-WISE SYLLABUS</h2>";
+    course.units?.forEach(unit => {
+      body += `<h3>Unit ${unit.number}: ${unit.title} (Weeks ${unit.weeks})</h3><ul>`;
+      unit.topics?.forEach(t => {
+        body += `<li>Week ${t.week}: ${t.content}</li>`;
+      });
+      body += "</ul>";
+    });
+
+    body += "<h2>COURSE OUTCOMES</h2><ul>";
+    course.course_outcomes?.forEach(co => {
+      body += `<li><strong>${co.code}</strong>: ${co.description} (Level: ${co.blooms_level})</li>`;
+    });
+    body += "</ul>";
+
+    const source = header + body + footer;
+    const blob = new Blob(['\ufeff', source], {
+      type: 'application/msword'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${course.code}_Syllabus.doc`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -114,7 +148,7 @@ export default function CourseDetailView({ course, onBack }) {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Generate Another
           </Button>
-          
+
           <div className="p-4 rounded-xl bg-gradient-to-r from-[#00E5FF]/10 to-[#8B5FFF]/10 border border-white/10 mb-4">
             <div className="flex items-center gap-3 mb-2">
               <span className="font-mono text-lg text-[#00E5FF]">{course.code}</span>
@@ -125,9 +159,9 @@ export default function CourseDetailView({ course, onBack }) {
             </p>
           </div>
         </div>
-        
+
         <div className="flex gap-3">
-          <Button 
+          <Button
             onClick={exportAsDOCX}
             variant="outline"
             className="border-white/20 text-white bg-transparent hover:bg-white/10 hover:text-white"
@@ -135,7 +169,7 @@ export default function CourseDetailView({ course, onBack }) {
             <Download className="w-4 h-4 mr-2" />
             DOCX
           </Button>
-          <Button 
+          <Button
             onClick={exportAsPDF}
             className="bg-gradient-to-r from-[#00E5FF] to-[#8B5FFF] hover:opacity-90 text-white border-0"
           >
@@ -173,7 +207,7 @@ export default function CourseDetailView({ course, onBack }) {
                   <h3 className="font-semibold text-white">Unit {unit.number} (Weeks {unit.weeks}): {unit.title}</h3>
                 </div>
               </div>
-              
+
               <div className="ml-4 space-y-2 border-l-2 border-[#00E5FF]/30 pl-4">
                 {unit.topics?.map((topic, i) => (
                   <div key={i} className="flex items-start gap-2">
@@ -257,9 +291,9 @@ export default function CourseDetailView({ course, onBack }) {
                       {mapping[po] ? (
                         <span className={`
                           inline-flex items-center justify-center w-7 h-7 rounded-md text-sm font-bold
-                          ${mapping[po] === 3 ? 'bg-[#39FF14]/20 text-[#39FF14]' : 
-                            mapping[po] === 2 ? 'bg-[#00E5FF]/20 text-[#00E5FF]' : 
-                            'bg-[#8B5FFF]/20 text-[#8B5FFF]'}
+                          ${mapping[po] === 3 ? 'bg-[#39FF14]/20 text-[#39FF14]' :
+                            mapping[po] === 2 ? 'bg-[#00E5FF]/20 text-[#00E5FF]' :
+                              'bg-[#8B5FFF]/20 text-[#8B5FFF]'}
                         `}>
                           {mapping[po]}
                         </span>
@@ -273,7 +307,7 @@ export default function CourseDetailView({ course, onBack }) {
             </tbody>
           </table>
         </div>
-        
+
         <div className="flex items-center gap-6 mt-4 text-sm text-gray-400">
           <span className="flex items-center gap-2">
             <span className="w-5 h-5 rounded bg-[#39FF14]/20 text-[#39FF14] text-xs font-bold flex items-center justify-center">3</span> High
@@ -337,7 +371,7 @@ export default function CourseDetailView({ course, onBack }) {
             <span className="text-lg font-semibold">Total Marks</span>
             <span className="text-3xl font-bold">{course.assessment?.total}</span>
           </div>
-          
+
           <div className="border-t border-white/10 pt-4">
             <h4 className="text-sm font-medium text-gray-400 mb-3">Bloom's Distribution</h4>
             <div className="grid grid-cols-4 gap-3">

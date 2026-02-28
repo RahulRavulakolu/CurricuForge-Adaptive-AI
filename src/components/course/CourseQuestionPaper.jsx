@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { 
-  FileText, Download, Loader2, BookOpen, Clock, 
+import {
+  FileText, Download, Loader2, BookOpen, Clock,
   CheckCircle, AlertCircle, Copy, Check
 } from 'lucide-react';
+import { exportQuestionPaperToPDF } from '@/utils/pdfExport';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -23,7 +24,7 @@ export default function CourseQuestionPaper({ course }) {
 
   const handleGenerate = async () => {
     setIsGenerating(true);
-    
+
     const prompt = `Generate a comprehensive ${examType === 'end_semester' ? 'End Semester' : 'Mid Semester'} examination question paper for:
 
 Course: ${course.title} (${course.code})
@@ -110,7 +111,7 @@ Return a JSON object with this structure:
           }
         }
       });
-      
+
       setQuestionPaper(response);
     } catch (error) {
       console.error('Generation failed:', error);
@@ -121,49 +122,12 @@ Return a JSON object with this structure:
 
   const handleDownload = () => {
     if (!questionPaper) return;
-    
-    let content = `${questionPaper.paper_title}\n`;
-    content += `${'='.repeat(60)}\n\n`;
-    content += `Course Code: ${questionPaper.course_code}\n`;
-    content += `Course Name: ${questionPaper.course_name}\n`;
-    content += `Duration: ${questionPaper.duration}\n`;
-    content += `Maximum Marks: ${questionPaper.max_marks}\n\n`;
-    content += `INSTRUCTIONS:\n`;
-    questionPaper.instructions?.forEach((inst, i) => {
-      content += `${i + 1}. ${inst}\n`;
-    });
-    content += `\n${'='.repeat(60)}\n\n`;
-    
-    questionPaper.sections?.forEach(section => {
-      content += `${section.name}\n`;
-      content += `${section.instructions}\n`;
-      content += `${'-'.repeat(40)}\n\n`;
-      
-      section.questions?.forEach(q => {
-        content += `Q${q.number}. ${q.question}\n`;
-        content += `    [Bloom's: ${q.blooms_level}] [${q.co_mapped}]\n\n`;
-      });
-      content += '\n';
-    });
-    
-    content += `\n${'='.repeat(60)}\n`;
-    content += `Total Marks: ${questionPaper.total_marks}\n`;
-    content += `${'='.repeat(60)}\n`;
-    
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${questionPaper.course_code}_Question_Paper.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    exportQuestionPaperToPDF(questionPaper);
   };
 
   const handleCopy = () => {
     if (!questionPaper) return;
-    
+
     let content = `${questionPaper.paper_title}\n\n`;
     questionPaper.sections?.forEach(section => {
       content += `${section.name}\n${section.instructions}\n\n`;
@@ -171,7 +135,7 @@ Return a JSON object with this structure:
         content += `Q${q.number}. ${q.question}\n\n`;
       });
     });
-    
+
     navigator.clipboard.writeText(content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -286,7 +250,7 @@ Return a JSON object with this structure:
                   </Badge>
                 </div>
                 <p className="text-sm text-gray-400 mb-4 italic">{section.instructions}</p>
-                
+
                 <div className="space-y-4">
                   {section.questions?.map((q, qIdx) => (
                     <div key={qIdx} className="p-4 rounded-lg bg-white/5 border border-white/5">

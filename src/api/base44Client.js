@@ -24,73 +24,60 @@ const mockBase44Client = {
   entities: {
     Curriculum: {
       create: async (data) => {
-        console.log('Mock curriculum creation (MongoDB disabled in browser):', data);
-        // Save to localStorage instead of MongoDB for browser compatibility
-        try {
-          const existingData = JSON.parse(localStorage.getItem('curricula') || '[]');
-          const newCurriculum = { id: 'curriculum-' + Date.now(), ...data, createdAt: new Date().toISOString() };
-          existingData.push(newCurriculum);
-          localStorage.setItem('curricula', JSON.stringify(existingData));
-          return newCurriculum;
-        } catch (error) {
-          console.error('LocalStorage save failed:', error);
-          return { id: 'mock-curriculum-' + Date.now(), ...data };
-        }
+        const resp = await fetch('/api/curricula', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!resp.ok) throw new Error('Failed to create curriculum');
+        return await resp.json();
       },
       list: async () => {
-        try {
-          const curricula = JSON.parse(localStorage.getItem('curricula') || '[]');
-          return { items: curricula, total: curricula.length };
-        } catch (error) {
-          return { items: [], total: 0 };
-        }
+        const resp = await fetch('/api/curricula');
+        if (!resp.ok) throw new Error('Failed to fetch curricula');
+        return await resp.json();
       },
       get: async (id) => {
-        try {
-          const curricula = JSON.parse(localStorage.getItem('curricula') || '[]');
-          return curricula.find(c => c.id === id) || null;
-        } catch (error) {
-          return null;
-        }
+        const resp = await fetch(`/api/curricula/${id}`);
+        if (!resp.ok) throw new Error('Failed to fetch curriculum');
+        return await resp.json();
       },
       update: async (id, data) => {
-        try {
-          const curricula = JSON.parse(localStorage.getItem('curricula') || '[]');
-          const index = curricula.findIndex(c => c.id === id);
-          if (index !== -1) {
-            curricula[index] = { ...curricula[index], ...data, updatedAt: new Date().toISOString() };
-            localStorage.setItem('curricula', JSON.stringify(curricula));
-          }
-          return { id, data };
-        } catch (error) {
-          return { id, data };
-        }
+        const resp = await fetch(`/api/curricula/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!resp.ok) throw new Error('Failed to update curriculum');
+        return await resp.json();
       },
       delete: async (id) => {
-        try {
-          const curricula = JSON.parse(localStorage.getItem('curricula') || '[]');
-          const filtered = curricula.filter(c => c.id !== id);
-          localStorage.setItem('curricula', JSON.stringify(filtered));
-          return { success: true };
-        } catch (error) {
-          return { success: false };
-        }
+        const resp = await fetch(`/api/curricula/${id}`, {
+          method: 'DELETE'
+        });
+        if (!resp.ok) throw new Error('Failed to delete curriculum');
+        return await resp.json();
+      }
+    },
+    Course: {
+      create: async (data) => {
+        const resp = await fetch('/api/courses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!resp.ok) throw new Error('Failed to create course');
+        return await resp.json();
       },
-      filter: async (query) => {
-        try {
-          const curricula = JSON.parse(localStorage.getItem('curricula') || '[]');
-          return { items: curricula, total: curricula.length };
-        } catch (error) {
-          return { items: [], total: 0 };
-        }
+      list: async () => {
+        const resp = await fetch('/api/courses');
+        if (!resp.ok) throw new Error('Failed to fetch courses');
+        return await resp.json();
       },
-      query: async (query) => {
-        try {
-          const curricula = JSON.parse(localStorage.getItem('curricula') || '[]');
-          return { items: curricula, total: curricula.length };
-        } catch (error) {
-          return { items: [], total: 0 };
-        }
+      get: async (id) => {
+        const resp = await fetch(`/api/courses/${id}`);
+        if (!resp.ok) throw new Error('Failed to fetch course');
+        return await resp.json();
       }
     }
   },
@@ -106,8 +93,8 @@ const mockBase44Client = {
     }
   },
   auth: {
-    me: async () => ({ 
-      id: 'mock-user', 
+    me: async () => ({
+      id: 'mock-user',
       email: 'user@example.com',
       created_date: new Date().toISOString(),
       updated_date: new Date().toISOString(),

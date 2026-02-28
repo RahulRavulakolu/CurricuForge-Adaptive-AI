@@ -1,14 +1,13 @@
 import { MongoClient } from 'mongodb';
 
-// MongoDB connection configuration
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const DB_NAME = 'curricuforge';
-
 let client;
 let db;
 
 // Initialize MongoDB connection
 export const connectDB = async () => {
+  const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+  const DB_NAME = process.env.MONGODB_DB_NAME || 'curricuforge';
+
   try {
     client = new MongoClient(MONGODB_URI);
     await client.connect();

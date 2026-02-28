@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -16,7 +16,7 @@ import CourseDetailView from '@/components/course/CourseDetailView';
 
 export default function CourseGenerator() {
   const [isReducedMotion, setIsReducedMotion] = useState(false);
-  
+
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setIsReducedMotion(mediaQuery.matches);
@@ -24,14 +24,39 @@ export default function CourseGenerator() {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [course, setCourse] = useState(null);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const curriculumId = searchParams.get('curriculum');
+
   const [formData, setFormData] = useState({
     program: 'B.Tech CSE',
-    semester: '5',
+    semester: '1',
     courseTitle: '',
     credits: '4',
     description: '',
     targetSkills: ''
   });
+
+  // Fetch curriculum details if ID is provided
+  useEffect(() => {
+    const fetchCurriculum = async () => {
+      if (curriculumId) {
+        try {
+          const data = await base44.entities.Curriculum.get(curriculumId);
+          if (data) {
+            setFormData(prev => ({
+              ...prev,
+              program: data.program_title || prev.program,
+              semester: String(data.semesters[0]?.number || '1')
+            }));
+          }
+        } catch (error) {
+          console.error('Error fetching curriculum context:', error);
+        }
+      }
+    };
+    fetchCurriculum();
+  }, [curriculumId]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -170,7 +195,7 @@ Return JSON with this EXACT structure:
             credits: { type: "number" },
             semester: { type: "number" },
             program: { type: "string" },
-            units: { 
+            units: {
               type: "array",
               items: {
                 type: "object",
@@ -178,7 +203,7 @@ Return JSON with this EXACT structure:
                   number: { type: "number" },
                   title: { type: "string" },
                   weeks: { type: "string" },
-                  topics: { 
+                  topics: {
                     type: "array",
                     items: {
                       type: "object",
@@ -191,7 +216,7 @@ Return JSON with this EXACT structure:
                 }
               }
             },
-            course_outcomes: { 
+            course_outcomes: {
               type: "array",
               items: {
                 type: "object",
@@ -203,7 +228,7 @@ Return JSON with this EXACT structure:
               }
             },
             co_po_mapping: { type: "object" },
-            assessment: { 
+            assessment: {
               type: "object",
               properties: {
                 internal: { type: "object" },
@@ -218,7 +243,7 @@ Return JSON with this EXACT structure:
       });
 
       setCourse(response);
-      
+
       // Save to database
       const courseData = typeof response === 'string' ? JSON.parse(response) : response;
       await base44.entities.Course.create(courseData);
@@ -239,15 +264,26 @@ Return JSON with this EXACT structure:
       {/* Header */}
       <header className="relative z-10 border-b border-white/5 bg-[#0B1020]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to={createPageUrl('Generator')} className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-gray-400 hover:text-white"
+              onClick={() => {
+                if (curriculumId) {
+                  navigate(createPageUrl(`CurriculumViewer?curriculum=${curriculumId}`));
+                } else {
+                  navigate(createPageUrl('Generator'));
+                }
+              }}
+            >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00E5FF] to-[#8B5FFF] flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-semibold">Course Syllabus Generator</span>
-          </Link>
+          </div>
         </div>
       </header>
 

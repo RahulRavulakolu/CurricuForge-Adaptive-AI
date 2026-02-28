@@ -26,7 +26,7 @@ export default function Repository() {
   const curriculaArray = Array.isArray(curriculaData?.items) ? curriculaData.items : [];
 
   const filteredCurricula = curriculaArray.filter(c => {
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       c.program_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.skill?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesLevel = levelFilter === 'all' || c.level === levelFilter;
@@ -164,9 +164,9 @@ export default function Repository() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Link to={createPageUrl(`CurriculumViewer?curriculum=${curriculum.id}`)} className="flex-1">
-                    <Button 
-                      variant="outline" 
+                  <Link to={createPageUrl(`CurriculumViewer?curriculum=${curriculum._id}`)} className="flex-1">
+                    <Button
+                      variant="outline"
                       size="sm"
                       className="w-full border-white/10 hover:bg-white/5"
                     >
@@ -174,8 +174,8 @@ export default function Repository() {
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </Link>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="icon"
                     className="text-gray-400 hover:text-white"
                     onClick={() => {

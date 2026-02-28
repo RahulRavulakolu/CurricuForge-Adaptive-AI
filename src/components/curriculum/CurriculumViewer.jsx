@@ -29,8 +29,8 @@ export default function CurriculumViewer({ curriculum }) {
   };
 
   const toggleSemester = (num) => {
-    setExpandedSemesters(prev => 
-      prev.includes(num) 
+    setExpandedSemesters(prev =>
+      prev.includes(num)
         ? prev.filter(n => n !== num)
         : [...prev, num]
     );
@@ -126,7 +126,7 @@ export default function CurriculumViewer({ curriculum }) {
           <Layers className="w-5 h-5 text-[#00E5FF]" />
           Semester Structure
         </h2>
-        
+
         {curriculum.semesters?.map((semester, index) => (
           <SemesterCard
             key={semester.number}
@@ -150,7 +150,7 @@ export default function CurriculumViewer({ curriculum }) {
             <Sparkles className="w-5 h-5 text-[#8B5FFF]" />
             Suggested Capstone Projects
           </h2>
-          
+
           <div className="grid md:grid-cols-3 gap-4">
             {curriculum.capstone_ideas.map((capstone, idx) => {
               const DomainIcon = getDomainIcon(capstone.industry_domain);
@@ -171,10 +171,10 @@ export default function CurriculumViewer({ curriculum }) {
                       {capstone.industry_domain}
                     </Badge>
                   </div>
-                  
+
                   <h3 className="text-lg font-semibold text-white mb-2">{capstone.title}</h3>
                   <p className="text-gray-400 text-sm mb-4 line-clamp-3">{capstone.description}</p>
-                  
+
                   <div className="space-y-3">
                     <div>
                       <span className="text-xs text-gray-500 uppercase tracking-wide">Skills Applied</span>
@@ -186,16 +186,15 @@ export default function CurriculumViewer({ curriculum }) {
                         ))}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
                       <span className="text-xs text-gray-500">Complexity</span>
-                      <Badge variant="outline" className={`text-xs ${
-                        capstone.complexity === 'Advanced' 
-                          ? 'border-red-500/30 text-red-400' 
+                      <Badge variant="outline" className={`text-xs ${capstone.complexity === 'Advanced'
+                          ? 'border-red-500/30 text-red-400'
                           : capstone.complexity === 'Intermediate'
-                          ? 'border-yellow-500/30 text-yellow-400'
-                          : 'border-green-500/30 text-green-400'
-                      }`}>
+                            ? 'border-yellow-500/30 text-yellow-400'
+                            : 'border-green-500/30 text-green-400'
+                        }`}>
                         {capstone.complexity}
                       </Badge>
                     </div>
@@ -232,7 +231,7 @@ export default function CurriculumViewer({ curriculum }) {
 
       {/* Actions */}
       <div className="flex flex-wrap gap-4 pt-8 border-t border-white/10">
-        <Link to={createPageUrl('CourseGenerator')}>
+        <Link to={createPageUrl(`CourseGenerator?curriculum=${curriculum._id}`)}>
           <Button className="bg-[#1F2937] hover:bg-[#374151] border border-white/10 text-white hover:text-white">
             <BookOpen className="w-4 h-4 mr-2" />
             Generate Detailed Syllabus

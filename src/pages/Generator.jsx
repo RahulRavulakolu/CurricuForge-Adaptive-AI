@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { 
-  Sparkles, ArrowLeft, ArrowRight, Loader2, 
+import {
+  Sparkles, ArrowLeft, ArrowRight, Loader2,
   GraduationCap, Clock, Building2, Target,
   FileJson, FileText, ChevronDown, Copy, Check,
-  BookOpen, BarChart3
+  BookOpen, BarChart3, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ import CurriculumViewer from '@/components/curriculum/CurriculumViewer';
 
 export default function Generator() {
   const [isReducedMotion, setIsReducedMotion] = useState(false);
-  
+
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setIsReducedMotion(mediaQuery.matches);
@@ -40,16 +40,7 @@ export default function Generator() {
     constraints: ''
   });
 
-  // Load curriculum data from localStorage
-  useEffect(() => {
-    const storedCurriculumData = localStorage.getItem('curriculumData');
-    if (storedCurriculumData) {
-      const parsedData = JSON.parse(storedCurriculumData);
-      setCurriculum(parsedData);
-      setStep(3); // Automatically go to review step if curriculum exists
-      console.log('Loaded curriculum from localStorage:', parsedData);
-    }
-  }, []);
+
 
   // Debug form data changes
   useEffect(() => {
@@ -59,7 +50,7 @@ export default function Generator() {
   const handleGenerate = async () => {
     console.log('Generate button clicked!', formData);
     setIsGenerating(true);
-    
+
     const prompt = `Generate a complete ${formData.semesters}-semester academic curriculum for ${formData.skill} at ${formData.level} level using the LATEST 2024-2025 industry standards, tools, and frameworks.
     
 Requirements:
@@ -186,23 +177,19 @@ Return a JSON object with this exact structure:
           }
         }
       });
-      
-      setCurriculum(response);
-      setStep(3);
-      
-      // Save to localStorage for persistence
-      const curriculumData = typeof response === 'string' ? JSON.parse(response) : response;
-      localStorage.setItem('curriculumData', JSON.stringify(curriculumData));
-      
+
       // Save to database
       const curriculumDataForDB = typeof response === 'string' ? JSON.parse(response) : response;
-      await base44.entities.Curriculum.create({
+      const savedCurriculum = await base44.entities.Curriculum.create({
         ...curriculumDataForDB,
         semester_count: formData.semesters,
         weekly_hours: formData.weeklyHours,
         industry_focus: formData.industryFocus,
         constraints: { maxCredits: formData.maxCreditsPerSemester }
       });
+
+      setCurriculum(savedCurriculum);
+      setStep(3);
     } catch (error) {
       console.error('Generation failed:', error);
     } finally {
@@ -258,8 +245,8 @@ Return a JSON object with this exact structure:
               <div className="flex items-center gap-2">
                 <div className={`
                   w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm
-                  ${step >= s.num 
-                    ? 'bg-gradient-to-r from-[#00E5FF] to-[#8B5FFF] text-white' 
+                  ${step >= s.num
+                    ? 'bg-gradient-to-r from-[#00E5FF] to-[#8B5FFF] text-white'
                     : 'bg-white/5 text-gray-500 border border-white/10'
                   }
                 `}>
@@ -439,7 +426,7 @@ Return a JSON object with this exact structure:
             >
               <h1 className="text-4xl font-bold mb-4">Ready to Generate</h1>
               <p className="text-gray-400 text-lg mb-8 max-w-xl mx-auto">
-                AI will create a {formData.semesters}-semester {formData.level} curriculum 
+                AI will create a {formData.semesters}-semester {formData.level} curriculum
                 for {formData.skill} with industry-aligned courses and progressive learning paths.
               </p>
 
@@ -530,7 +517,32 @@ Return a JSON object with this exact structure:
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
             >
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCurriculum(null);
+                    setStep(1);
+                    setFormData({
+                      skill: '',
+                      level: 'B.Tech',
+                      semesters: 4,
+                      weeklyHours: '20-25',
+                      industryFocus: '',
+                      maxCreditsPerSemester: 18,
+                      includeCapstone: true,
+                      constraints: ''
+                    });
+                    localStorage.removeItem('curriculumData');
+                  }}
+                  className="border-[#00E5FF]/30 text-[#00E5FF] hover:bg-[#00E5FF]/10"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create New Curriculum
+                </Button>
+              </div>
               <CurriculumViewer curriculum={curriculum} />
             </motion.div>
           )}
