@@ -2,6 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Performance optimizations */
+@layer base {
+  /* Enable GPU acceleration for smooth animations */
+  * {
+    @apply border-border outline-ring/50;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Optimize scroll performance */
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    overflow-x: hidden;
+    will-change: scroll-position;
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Optimize images and media */
+  img, video {
+    max-width: 100%;
+    height: auto;
+    content-visibility: auto;
+  }
+
+  /* Improve text rendering */
+  p, h1, h2, h3, h4, h5, h6 {
+    text-rendering: optimizeLegibility;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -75,14 +123,36 @@
   }
 }
 
-
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+@layer utilities {
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  .smooth-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .fast-transition {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .no-animation {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Contain paint for better performance */
+  .contain-paint {
+    contain: paint;
+  }
+
+  .contain-layout {
+    contain: layout;
+  }
+
+  .contain-strict {
+    contain: strict;
   }
 }

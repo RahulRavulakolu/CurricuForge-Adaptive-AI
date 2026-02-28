@@ -47,11 +47,13 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import React from 'react';
 import Analytics from './pages/Analytics';
 import CourseGenerator from './pages/CourseGenerator';
 import Generator from './pages/Generator';
 import Landing from './pages/Landing';
 import Repository from './pages/Repository';
+import CurriculumViewer from './pages/CurriculumViewer';
 import __Layout from './Layout.jsx';
 
 
@@ -61,6 +63,7 @@ export const PAGES = {
     "Generator": Generator,
     "Landing": Landing,
     "Repository": Repository,
+    "CurriculumViewer": CurriculumViewer,
 }
 
 export const pagesConfig = {
